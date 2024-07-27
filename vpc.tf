@@ -1,15 +1,15 @@
 # tcs-vpc
-resource "aws_vpc" "ibm-vpc" {
+resource "aws_vpc" "ecom-vpc" {
   cidr_block       = "10.0.0.0/16"
   instance_tenancy = "default"
 
   tags = {
-    Name = "ibm"
+    Name = "ecom"
   }
 }
 # web subnet
-resource "aws_subnet" "ibm-web-sn" {
-  vpc_id     = aws_vpc.ibm-vpc.id
+resource "aws_subnet" "ecom-web-sn" {
+  vpc_id     = aws_vpc.ecom-vpc.id
   cidr_block = "10.0.1.0/24"
   availability_zone = "us-east-2a"
   map_public_ip_on_launch ="true"
@@ -19,8 +19,8 @@ resource "aws_subnet" "ibm-web-sn" {
   }
 }
 #data subnet
-resource "aws_subnet" "ibm-database-sn" {
-  vpc_id     = aws_vpc.ibm-vpc.id
+resource "aws_subnet" "ecom-database-sn" {
+  vpc_id     = aws_vpc.ecom-vpc.id
   cidr_block = "10.0.1.0/24"
   availability_zone = "us-east-2b"
   map_public_ip_on_launch ="false"
@@ -30,8 +30,8 @@ resource "aws_subnet" "ibm-database-sn" {
   }
 }
 #internet gateway
-resource "aws_internet_gateway" "ibm-gw" {
-  vpc_id = aws_vpc.ibm-vpc.id
+resource "aws_internet_gateway" "ecom-gw" {
+  vpc_id = aws_vpc.ecom-vpc.id
 
   tags = {
     Name = "internetgateway"
@@ -43,7 +43,7 @@ resource "aws_route_table" "web-route-table" {
 
   route {
     cidr_block = "0.0.0.0/0"
-    gateway_id = aws_internet_gateway.ibm-gw.id
+    gateway_id = aws_internet_gateway.ecom-gw.id
   }
     tags = {
     Name = "web-route"
@@ -51,7 +51,7 @@ resource "aws_route_table" "web-route-table" {
 }
 #public route table association
 resource "aws_route_table_association" "web-route" {
-  subnet_id      = aws_subnet.ibm-web-sn.id
+  subnet_id      = aws_subnet.ecom-web-sn.id
   route_table_id = aws_route_table.web-route-table.id
 }
 #private route table
@@ -64,12 +64,12 @@ resource "aws_route_table" "database-route-table" {
 }
 #private route table association
 resource "aws_route_table_association" "database-route" {
-  subnet_id      = aws_subnet.ibm-database-sn.id
+  subnet_id      = aws_subnet.ecom-database-sn.id
   route_table_id = aws_route_table.database-route-table.id
 }
 #public nacl
 resource "aws_network_acl" "web-nacl" {
-  vpc_id = aws_vpc.ibm-vpc.id
+  vpc_id = aws_vpc.ecom-vpc.id
 
   egress {
     protocol   = "tcp"
@@ -96,12 +96,12 @@ resource "aws_network_acl" "web-nacl" {
 #public nacl assosiaction
 resource "aws_network_acl_association" "public-nacl-ass" {
   network_acl_id = aws_network_acl.web-nacl.id
-  subnet_id      = aws_subnet.ibm-web-sn.id
+  subnet_id      = aws_subnet.ecom-web-sn.id
 }
 
 #private nacl
 resource "aws_network_acl" "database-nacl" {
-  vpc_id = aws_vpc.ibm-vpc.id
+  vpc_id = aws_vpc.ecom-vpc.id
 
   egress {
     protocol   = "tcp"
@@ -128,14 +128,14 @@ resource "aws_network_acl" "database-nacl" {
 #public nacl assosiaction
 resource "aws_network_acl_association" "private-nacl-ass" {
   network_acl_id = aws_network_acl.database-nacl.id
-  subnet_id      = aws_subnet.ibm-database-sn.id
+  subnet_id      = aws_subnet.ecom-database-sn.id
 }
 
 #public security group
 resource "aws_security_group" "web-sg" {
   name        = "web-sg"
   description = "Allow TLS inbound traffic and all outbound traffic"
-  vpc_id      = aws_vpc.ibm-vpc.id
+  vpc_id      = aws_vpc.ecom-vpc.id
 
   tags = {
     Name = "web-sg"
