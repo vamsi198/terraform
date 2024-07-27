@@ -156,6 +156,15 @@ resource "aws_vpc_security_group_ingress_rule" "http" {
   ip_protocol       = "tcp"
   to_port           = 80
 }
+# egress rule -outbound rule
+resource "aws_vpc_security_group_egress_rule" "outbound-rule" {
+  security_group_id = aws_security_group.web-sg.id
+
+  cidr_ipv4   = "0.0.0.0/0"
+  from_port   = 0
+  ip_protocol = "tcp"
+  to_port     = 65535
+}
 ### public sequrity group egress rule 
 # --> by defaultly aws creates allow all egressrule 
 # --> so no need to create egress rule manually.
